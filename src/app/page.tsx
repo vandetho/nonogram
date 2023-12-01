@@ -1,95 +1,95 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+'use client';
 
-export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
+import React, { useEffect, useState } from 'react';
+
+const numRows = 5;
+const numCols = 5;
+
+const generateRandomPuzzle = (): number[][] => {
+    const puzzle: number[][] = Array.from({ length: numRows }, () =>
+        Array.from({ length: numCols }, () => 0)
+    );
+
+    // Set a random number of filled cells for each row
+    const rowIndicators = puzzle.map(() => Math.floor(Math.random() * (numCols + 1)));
+    rowIndicators.forEach((numFilled, rowIndex) => {
+        for (let i = 0; i < numFilled; i++) {
+            puzzle[rowIndex][i] = 1;
+        }
+    });
+
+    // Set a random number of filled cells for each column
+    const colIndicators = Array.from({ length: numCols }, () => Math.floor(Math.random() * (numRows + 1)));
+    colIndicators.forEach((numFilled, colIndex) => {
+        for (let i = 0; i < numFilled; i++) {
+            puzzle[i][colIndex] = 1;
+        }
+    });
+
+    return puzzle;
+};
+
+const NonogramGame = () => {
+    const [puzzle, setPuzzle] = useState<number[][]>(generateRandomPuzzle());
+    const [rowIndicators, setRowIndicators] = useState<number[]>([]);
+    const [colIndicators, setColIndicators] = useState<number[]>([]);
+
+    useEffect(() => {
+        // Update the row and column indicators whenever the puzzle changes
+        updateIndicators();
+    }, [puzzle]);
+
+    const handleCellClick = (row: number, col: number): void => {
+        const newPuzzle = puzzle.map((r, rowIndex) =>
+            r.map((value, colIndex) =>
+                rowIndex === row && colIndex === col ? 1 - value : value
+            )
+        );
+        setPuzzle(newPuzzle);
+    };
+
+    const updateIndicators = (): void => {
+        // Update row indicators
+        const updatedRowIndicators = puzzle.map(row =>
+            row.reduce((sum, cell) => sum + cell, 0)
+        );
+        setRowIndicators(updatedRowIndicators);
+
+        // Update column indicators
+        const updatedColIndicators = Array.from({ length: numCols }, (_, colIndex) =>
+            puzzle.reduce((sum, row) => sum + row[colIndex], 0)
+        );
+        setColIndicators(updatedColIndicators);
+    };
+
+    return (
         <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            {/* Column Indicators */}
+            <div style={{ display: 'flex' }}>
+                {colIndicators.map((indicator, colIndex) => (
+                    <div key={colIndex} className="indicator">
+                        {indicator}
+                    </div>
+                ))}
+            </div>
+
+            {puzzle.map((row, rowIndex) => (
+                <div key={rowIndex} style={{ display: 'flex' }}>
+                    {/* Row Indicator */}
+                    <div className="indicator">{rowIndicators[rowIndex]}</div>
+
+                    {/* Puzzle Cells */}
+                    {row.map((value, colIndex) => (
+                        <div
+                            key={colIndex}
+                            className={`cell ${value ? 'filled' : ''}`}
+                            onClick={() => handleCellClick(rowIndex, colIndex)}
+                        ></div>
+                    ))}
+                </div>
+            ))}
         </div>
-      </div>
+    );
+};
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
-}
+export default NonogramGame;
